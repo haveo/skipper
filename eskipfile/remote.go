@@ -135,6 +135,17 @@ func (client *remoteEskipFile) LoadUpdate() ([]*eskip.Route, []string, error) {
 	return newRoutes, deletedRoutes, err
 }
 
+func (client *remoteEskipFile) Close() {
+	if client != nil {
+		if client.http != nil {
+			client.http.Close()
+		}
+		if client.eskipFileClient != nil {
+			client.eskipFileClient.Close()
+		}
+	}
+}
+
 func isFileRemote(remotePath string) bool {
 	return strings.HasPrefix(remotePath, "http://") || strings.HasPrefix(remotePath, "https://")
 }
