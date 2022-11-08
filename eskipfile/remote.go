@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/zalando/skipper/eskip"
@@ -15,6 +16,7 @@ import (
 )
 
 type remoteEskipFile struct {
+	once            *sync.Once
 	preloaded       bool
 	remotePath      string
 	localPath       string
@@ -55,6 +57,7 @@ func RemoteWatch(o *RemoteWatchOptions) (routing.DataClient, error) {
 	}
 
 	dataClient := &remoteEskipFile{
+		once:       &sync.Once{},
 		remotePath: o.RemoteFile,
 		localPath:  tempFilename.Name(),
 		threshold:  o.Threshold,
@@ -137,12 +140,14 @@ func (client *remoteEskipFile) LoadUpdate() ([]*eskip.Route, []string, error) {
 
 func (client *remoteEskipFile) Close() {
 	if client != nil {
-		if client.http != nil {
-			client.http.Close()
-		}
-		if client.eskipFileClient != nil {
-			client.eskipFileClient.Close()
-		}
+		client.once.Do(func() {
+			if client.http != nil {
+				client.http.Close()
+			}
+			if client.eskipFileClient != nil {
+				client.eskipFileClient.Close()
+			}
+		})
 	}
 }
 
