@@ -195,3 +195,9 @@ func trimQuotes(s string) string {
 	}
 	return s
 }
+
+func StoreClaims(ctx filters.FilterContext, claims map[string]interface{}) {
+	var info tokenContainer
+	info.Claims = claims
+	ctx.StateBag()[oidcClaimsCacheKey] = info
+}
